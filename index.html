@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Bunny Grid Navigation - Euclidean Algorithm</title>
+  <style>
+    /* RESET & CORE 16-BIT RETRO THEME */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #090a14;
+      color: #e0e6ed;
+      font-family: 'Courier New', Courier, monospace, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* 16-Bit Beveled Borders */
+    .retro-box {
+      background-color: #121324;
+      border: 3px solid #3b426b;
+      box-shadow: inset 2px 2px 0px #5c69a6, inset -2px -2px 0px #1a1b2e, 0 6px 16px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .retro-header {
+      background-color: #1a1c33;
+      border-bottom: 2px solid #2b3052;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-tag {
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Retro Arcade Buttons */
+    .retro-btn {
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 7px 14px;
+      border: 2px solid #000;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.4), inset -2px -2px 0px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4);
+      transition: all 0.06s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .retro-btn:active {
+      transform: translateY(2px);
+      box-shadow: inset 2px 2px 0px rgba(0,0,0,0.7);
+    }
+
+    .btn-green {
+      background-color: #00cc66;
+      color: #051408;
+    }
+    .btn-green:hover { background-color: #00ff7f; }
+
+    .btn-blue {
+      background-color: #2b3c6b;
+      color: #e0e6ed;
+    }
+    .btn-blue:hover { background-color: #3b5294; }
+
+    .btn-gray {
+      background-color: #333852;
+      color: #c2c8d8;
+    }
+    .btn-gray:hover { background-color: #474e70; }
+
+    .btn-pink {
+      background-color: #ff0066;
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(255,255,255,0.8);
+      box-shadow: 0 0 10px rgba(255, 0, 102, 0.4), inset 1px 1px 0px rgba(255,255,255,0.4), inset -2px -2px 0px rgba(0,0,0,0.5);
+    }
+    .btn-pink:hover {
+      background-color: #ff3399;
+      box-shadow: 0 0 16px rgba(255, 51, 153, 0.7);
+    }
+
+    .btn-preset {
+      background-color: #20243d;
+      color: #b0bad0;
+      border: 1px solid #3d4573;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .btn-preset:hover {
+      background-color: #323a63;
+      color: #00ffcc;
+      border-color: #00ffcc;
+    }
+
+    /* TOP BANNER */
+    .top-banner {
+      background-color: #121324;
+      border: 3px solid #3b426b;
+      border-radius: 4px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .title-group h1 {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00ffcc;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+    }
+
+    .title-group .sub {
+      font-size: 11px;
+      color: #ffea00;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* 3-BOX GRID LAYOUT */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      grid-template-rows: minmax(490px, 1fr) auto;
+      gap: 12px;
+      flex: 1;
+    }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+    }
+
+    /* BOX 1: MAIN CANVAS */
+    #box1 {
+      grid-column: 1;
+      grid-row: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background-color: #0d0f1f;
+      overflow: hidden;
+      margin: 4px;
+      border-radius: 3px;
+    }
+
+    #gridCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* BOX 2: CALCULATION ENGINE */
+    #box2 {
+      grid-column: 2;
+      grid-row: 1;
+      overflow: hidden;
+    }
+
+    @media (max-width: 980px) {
+      #box2 {
+        grid-column: 1;
+        grid-row: 2;
+      }
+    }
+
+    .calc-content {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .card {
+      background-color: #17192f;
+      border: 1px solid #2d3357;
+      border-radius: 3px;
+      padding: 10px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .steps-log {
+      background-color: #0b0c17;
+      border: 1px solid #1f233f;
+      border-radius: 3px;
+      padding: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .hop-sequence-box {
+      background-color: #0b0c17;
+      border: 1px solid #1f233f;
+      border-radius: 3px;
+      padding: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 11px;
+    }
+
+    .hop-item {
+      padding: 3px 6px;
+      border-radius: 2px;
+      display: flex;
+      justify-content: space-between;
+      color: #9aa5b8;
+    }
+
+    .hop-item.active {
+      background-color: #244229;
+      color: #00ff7f;
+      font-weight: bold;
+      border-left: 3px solid #00ff7f;
+    }
+
+    .hop-item.done {
+      color: #556075;
+    }
+
+    /* BOX 3: INPUT AREA & CONTROLS */
+    #box3 {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    @media (max-width: 980px) {
+      #box3 {
+        grid-column: 1;
+        grid-row: 3;
+      }
+    }
+
+    .control-row {
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .coord-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #17192f;
+      padding: 6px 12px;
+      border-radius: 3px;
+      border: 1px solid #333a63;
+    }
+
+    .coord-input {
+      width: 44px;
+      background-color: #0a0b14;
+      border: 1px solid #3b426b;
+      color: #ffea00;
+      font-weight: bold;
+      font-size: 14px;
+      text-align: center;
+      padding: 3px 0;
+      border-radius: 2px;
+    }
+
+    .coord-input:focus {
+      outline: none;
+      border-color: #00ffcc;
+      box-shadow: 0 0 5px rgba(0,255,204,0.5);
+    }
+
+    /* CRT Scanline Overlay */
+    .scanlines {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+    }
+
+    /* END SCREEN / SPLASH SCREEN OVERLAY */
+    #endScreenOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(5, 5, 14, 0.95);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #fireworksCanvas {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      cursor: crosshair;
+    }
+
+    .splash-card {
+      position: relative;
+      z-index: 10;
+      background-color: rgba(16, 18, 38, 0.92);
+      border: 3px solid #ff0066;
+      box-shadow: 0 0 25px rgba(255, 0, 102, 0.5), inset 2px 2px 0px #ff66aa;
+      border-radius: 6px;
+      max-width: 780px;
+      width: 100%;
+      padding: 28px 24px;
+      text-align: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .splash-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.3;
+      margin: 12px 0;
+      text-shadow: 3px 3px 0px #ff0066, 6px 6px 0px #00ffcc, 0 0 20px rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      .splash-title {
+        font-size: 18px;
+      }
+    }
+
+    .splash-sub {
+      color: #00ff7f;
+      font-weight: bold;
+      font-size: 13px;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .splash-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background-color: #0e1021;
+      border: 1px solid #282f54;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    @media (max-width: 600px) {
+      .splash-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #79859c;
+      text-transform: uppercase;
+    }
+
+    .stat-val {
+      font-size: 13px;
+      font-weight: 900;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP 16-BIT BANNER -->
+  <header class="top-banner">
+    <div class="title-group">
+      <div class="sub">★ 16-BIT RETRO MATH ARENA ★</div>
+      <h1>ROBOT GRID NAVIGATION USING EUCLIDEAN ALGORITHM</h1>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button id="btnAudioToggle" onclick="toggleAudio()" class="retro-btn btn-gray" style="padding: 5px 10px; font-size: 11px;">
+        🔊 SOUND: ON
+      </button>
+      <div style="background-color: #17192f; border: 1px solid #333a63; padding: 4px 10px; border-radius: 3px; font-size: 11px; color: #00ffcc;">
+        TARGET: <strong style="color: #ffea00;">CARROTS (0, 0)</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3-BOX WORKSPACE -->
+  <main class="workspace">
+    
+    <!-- BOX 1: MAIN SCREEN (RETRO ARENA CANVAS) -->
+    <section id="box1" class="retro-box">
+      <div class="retro-header">
+        <span class="header-tag" style="color: #00ffcc;">[ 1. MAIN ARENA: BUNNY HOPPER GRID ]</span>
+        <span id="arenaStatus" style="font-size: 11px; font-weight: bold; color: #00ff7f; background: #0c2115; border: 1px solid #00ff7f; padding: 2px 8px; border-radius: 3px;">
+          STATUS: READY TO HOP
+        </span>
+      </div>
+      <div class="canvas-container">
+        <canvas id="gridCanvas"></canvas>
+        <div class="scanlines"></div>
+      </div>
+    </section>
+
+    <!-- BOX 2: EUCLID'S ALGORITHM CALCULATION ENGINE -->
+    <section id="box2" class="retro-box">
+      <div class="retro-header">
+        <span class="header-tag" style="color: #ff3399;">[ 2. EUCLID'S CALCULATION ENGINE ]</span>
+        <span style="font-size: 11px; color: #ffea00;">MATH LAB</span>
+      </div>
+      
+      <div class="calc-content">
+        <!-- Card A: GCD Badge -->
+        <div class="card">
+          <div class="card-title" style="color: #ffea00;">GREATEST COMMON DIVISOR (GCD)</div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span id="gcdValDisplay" style="font-size: 20px; font-weight: 900; color: #ffea00; text-shadow: 0 0 8px rgba(255,234,0,0.4);">
+              GCD = 6
+            </span>
+            <span style="font-size: 10px; color: #00ffcc; background: #0c2423; border: 1px solid #00ffcc; padding: 2px 6px; border-radius: 2px;">
+              QUANTUM HOP SIZE
+            </span>
+          </div>
+          <div id="gcdRuleText" style="font-size: 11px; color: #c2c8d8; margin-top: 6px; border-top: 1px solid #272c4a; pt: 4px; padding-top: 4px;">
+            Bunny moves Left or Down in steps of 6 units.
+          </div>
+        </div>
+
+        <!-- Card B: Euclidean Division Algorithm Breakdown -->
+        <div class="card">
+          <div class="card-title" style="color: #00ffcc;">DIVISION ALGORITHM STEPS</div>
+          <div id="eucStepsList" class="steps-log">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Card C: Planned Hop Sequence with Active Step Highlight -->
+        <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span class="card-title" style="color: #b388ff; margin: 0;">HOP SEQUENCE PLAN</span>
+            <span id="hopCounterText" style="font-size: 10px; color: #79859c;">0 / 0</span>
+          </div>
+          <div id="hopSequenceList" class="hop-sequence-box" style="flex: 1;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Card D: Metrics -->
+        <div class="card" style="display: flex; justify-content: space-between; font-size: 11px; color: #79859c; padding: 6px 10px;">
+          <span id="metricHops">Total Hops: 5</span>
+          <span id="metricDist">Manhattan: 30</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOX 3: INPUT AREA & MISSION CONTROL -->
+    <section id="box3" class="retro-box">
+      <div class="retro-header">
+        <span class="header-tag" style="color: #ffea00;">[ 3. INPUT AREA & MISSION CONTROL ]</span>
+        <span style="font-size: 11px; color: #79859c;">Set starting point coords and navigate to (0,0)</span>
+      </div>
+
+      <div class="control-row">
+        <!-- 1. Coordinate Inputs -->
+        <div class="coord-input-wrap">
+          <span style="font-weight: bold; font-size: 11px; color: #00ffcc;">START (X, Y):</span>
+          <span>(</span>
+          <input id="inputX" type="number" min="1" max="99" value="12" class="coord-input">
+          <span>,</span>
+          <input id="inputY" type="number" min="1" max="99" value="18" class="coord-input">
+          <span>)</span>
+        </div>
+
+        <!-- 2. Presets -->
+        <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+          <span style="font-size: 11px; color: #79859c;">PRESETS:</span>
+          <button onclick="applyPreset(12, 18)" class="retro-btn btn-preset">12, 18</button>
+          <button onclick="applyPreset(24, 36)" class="retro-btn btn-preset">24, 36</button>
+          <button onclick="applyPreset(15, 25)" class="retro-btn btn-preset">15, 25</button>
+          <button onclick="applyPreset(28, 21)" class="retro-btn btn-preset">28, 21</button>
+          <button onclick="applyPreset(35, 14)" class="retro-btn btn-preset">35, 14</button>
+        </div>
+
+        <!-- 3. Speed selector -->
+        <div style="display: flex; align-items: center; gap: 6px; background: #17192f; border: 1px solid #333a63; padding: 4px 8px; border-radius: 3px;">
+          <span style="font-size: 11px; color: #79859c;">SPEED:</span>
+          <select id="speedSelect" style="background: #0a0b14; color: #00ffcc; border: 1px solid #3b426b; border-radius: 2px; font-size: 11px; padding: 2px 4px; outline: none;">
+            <option value="600">Slow (0.6s)</option>
+            <option value="350" selected>Normal (0.35s)</option>
+            <option value="120">Fast (0.12s)</option>
+          </select>
+        </div>
+
+        <!-- 4. Action Buttons -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <button id="btnRun" onclick="startNavigation()" class="retro-btn btn-green">
+            ▶ START HOPPING
+          </button>
+          <button id="btnStep" onclick="stepForward()" class="retro-btn btn-blue">
+            ⏭ STEP
+          </button>
+          <button id="btnReset" onclick="resetSimulation()" class="retro-btn btn-gray">
+            ↺ RESET
+          </button>
+          
+          <!-- USER REQUESTED: END SCREEN BUTTON -->
+          <button id="btnEndScreen" onclick="showEndScreen()" class="retro-btn btn-pink">
+            🎆 END SCREEN
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- USER REQUESTED: END SCREEN / SPLASH SCREEN OVERLAY WITH FIREWORKS -->
+  <div id="endScreenOverlay">
+    <!-- Fireworks Background Canvas -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- Foreground Celebration Card -->
+    <div class="splash-card">
+      <div style="color: #ffea00; font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">
+        ★ MISSION ACCOMPLISHED ★
+      </div>
+
+      <!-- BIG BOLD TITLE EXACTLY AS REQUESTED -->
+      <h2 class="splash-title">
+        ROBOT GRID NAVIGATION<br>
+        USING EUCLIDEAN ALGORITHM
+      </h2>
+
+      <div class="splash-sub">
+        BUNNY REACHED THE CARROTS AT (0, 0)!
+      </div>
+
+      <!-- Center Sprite Animation -->
+      <div style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 40px; margin: 12px 0;">
+        <span style="display: inline-block; animation: bounce 0.6s infinite alternate;">🐰</span>
+        <span style="font-size: 32px;">🥕</span>
+        <span style="display: inline-block; animation: bounce 0.6s 0.2s infinite alternate;">🥕</span>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="splash-stats">
+        <div>
+          <div class="stat-label">STARTING COORDS</div>
+          <div id="splashStart" class="stat-val" style="color: #00ffcc;">(12, 18)</div>
+        </div>
+        <div>
+          <div class="stat-label">GREATEST COMMON DIVISOR</div>
+          <div id="splashGcd" class="stat-val" style="color: #ffea00;">GCD = 6</div>
+        </div>
+        <div>
+          <div class="stat-label">TOTAL HOPS TO (0,0)</div>
+          <div id="splashHops" class="stat-val" style="color: #ff3399;">5 HOPS</div>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; color: #79859c; margin-bottom: 16px;">
+        ✦ Click anywhere on the screen to launch custom fireworks! ✦
+      </div>
+
+      <!-- Return Button -->
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button onclick="hideEndScreen()" class="retro-btn btn-green" style="padding: 10px 20px; font-size: 12px;">
+          ◀ RETURN TO GRID ARENA
+        </button>
+        <button onclick="launchMoreFireworks()" class="retro-btn btn-pink" style="padding: 10px 18px; font-size: 12px;">
+          🎆 LAUNCH BARRAGE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+  </style>
+
+  <!-- SCRIPT: GAME ENGINE, PIXEL SPRITES, SOUND SYNTHESIS & FIREWORKS -->
+  <script>
+    // =========================================================================
+    // 16-BIT RETRO SPRITES MATRIX
+    // =========================================================================
+    const BUNNY_SPRITE_IDLE = [
+      "....WW....WW....",
+      "...WPPW..WPPW...",
+      "...WPPW..WPPW...",
+      "...WPPW..WPPW...",
+      "....WWWWWWWW....",
+      "...WWWWWWWWWW...",
+      "..WWBWWWWWWBWW..",
+      "..WWBWWPPWWBWW..",
+      "..WRWWWPPEWWRAW.",
+      "..WWWWWWWWWWWW..",
+      "...WWWWWWWWWW...",
+      "...WWWWWWWWWW...",
+      "..WWWWWWWWWWWW..",
+      "..WWW.WWWW.WWW..",
+      "...SS..SS...SS..",
+      "................"
+    ];
+
+    const BUNNY_SPRITE_HOP = [
+      "...WW......WW...",
+      "..WPPW....WPPW..",
+      "..WPPW....WPPW..",
+      "...WWWWWWWWWW...",
+      "..WWWWWWWWWWWW..",
+      ".WWBWWWWWWWWBWW.",
+      ".WWBWWPPPEWWBWW.",
+      ".WRWWWWPPWWWRAW.",
+      "..WWWWWWWWWWWW..",
+      "...WWWWWWWWWW...",
+      "....WWWWWWWW....",
+      "..WWWWWWWWWWWW..",
+      ".WWWW......WWWW.",
+      ".SS..........SS.",
+      "................",
+      "................"
+    ];
+
+    const CARROT_SPRITE = [
+      ".....GG.GG....",
+      "....GLLGGGL...",
+      ".....GGGG.....",
+      "...OOOOOOOO...",
+      "..OYYOOOODDO..",
+      "..OYOOOOODDO..",
+      "...OOOOODDO...",
+      "...OYOOODDO...",
+      "....OOOODO....",
+      "....OYOODO....",
+      ".....OODO.....",
+      ".....OOO......",
+      "......OO......",
+      ".......O......"
+    ];
+
+    const SPRITE_PALETTE = {
+      "W": "#f5f5ff",
+      "S": "#c2c8d8",
+      "P": "#ff6699",
+      "B": "#12131e",
+      "E": "#ffffff",
+      "R": "#ff3b75",
+      "A": "#ff3b75",
+      "G": "#00b33c",
+      "L": "#44ff77",
+      "O": "#ff7700",
+      "Y": "#ffcc00",
+      "D": "#c44000"
+    };
+
+    function drawPixelSprite(ctx, spriteLines, cx, cy, pixelSize = 2.5) {
+      const rows = spriteLines.length;
+      const cols = spriteLines[0].length;
+      const startX = cx - (cols * pixelSize) / 2;
+      const startY = cy - (rows * pixelSize) / 2;
+
+      for (let r = 0; r < rows; r++) {
+        const row = spriteLines[r];
+        for (let c = 0; c < cols; c++) {
+          const char = row[c];
+          if (char !== '.' && SPRITE_PALETTE[char]) {
+            ctx.fillStyle = SPRITE_PALETTE[char];
+            ctx.fillRect(startX + c * pixelSize, startY + r * pixelSize, pixelSize, pixelSize);
+          }
+        }
+      }
+    }
+
+    // =========================================================================
+    // 8-BIT RETRO CHIPTUNE SOUND SYNTHESIZER (WEB AUDIO API)
+    // =========================================================================
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById("btnAudioToggle");
+      if (audioEnabled) {
+        btn.innerText = "🔊 SOUND: ON";
+        btn.style.color = "#00ffcc";
+        play8BitHopSound();
+      } else {
+        btn.innerText = "🔇 SOUND: OFF";
+        btn.style.color = "#79859c";
+      }
+    }
+
+    function play8BitHopSound() {
+      if (!audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        const now = ctx.currentTime;
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } catch (e) {}
+    }
+
+    function play8BitLandSound() {
+      if (!audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        const now = ctx.currentTime;
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch (e) {}
+    }
+
+    function play8BitVictorySound() {
+      if (!audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const notes = [440, 554, 659, 880];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "square";
+          const now = ctx.currentTime + idx * 0.09;
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        });
+      } catch (e) {}
+    }
+
+    function playFireworkBoomSound() {
+      if (!audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        const now = ctx.currentTime;
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(35, now + 0.25);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // NAVIGATION STATE & MATHEMATICAL ENGINE
+    // =========================================================================
+    let startX = 12;
+    let startY = 18;
+    let gcdVal = 6;
+    let eucSteps = [];
+    let path = [];
+    let currentStepIdx = 0;
+    let isAnimating = false;
+    let animTimer = null;
+    let animSpeedMs = 350;
+
+    // Substep Hop Interpolation
+    let currentPos = { x: 12, y: 18 };
+    let hopFrom = { x: 12, y: 18 };
+    let hopTo = { x: 12, y: 18 };
+    let hopSubstep = 0;
+    const totalSubsteps = 8;
+    let jumpHeight = 0;
+    let dustPuffs = [];
+
+    // Calculate Euclidean Algorithm and Shortest Navigation Path
+    function calculateEuclidean(a, b) {
+      eucSteps = [];
+      let x = Math.max(a, b);
+      let y = Math.min(a, b);
+      let stepNum = 1;
+
+      while (y !== 0) {
+        const q = Math.floor(x / y);
+        const r = x % y;
+        eucSteps.push({
+          step: stepNum,
+          a: x,
+          b: y,
+          q: q,
+          r: r,
+          expr: `${x} = ${y} × ${q} + ${r}`
+        });
+        x = y;
+        y = r;
+        stepNum++;
+      }
+      gcdVal = x !== 0 ? x : 1;
+
+      // Plan Shortest Hop Path towards (0, 0)
+      path = [[a, b]];
+      let cx = a, cy = b;
+      const stepDelta = gcdVal;
+
+      while (cx > 0 || cy > 0) {
+        if (cx >= cy && cx > 0) {
+          cx = Math.max(0, cx - stepDelta);
+        } else if (cy > 0) {
+          cy = Math.max(0, cy - stepDelta);
+        }
+        path.push([cx, cy]);
+      }
+
+      currentStepIdx = 0;
+      currentPos = { x: a, y: b };
+      hopFrom = { x: a, y: b };
+      hopTo = { x: a, y: b };
+      jumpHeight = 0;
+      return gcdVal;
+    }
+
+    // =========================================================================
+    // UI REFRESH: SYNC BOX 1, BOX 2 & BOX 3
+    // =========================================================================
+    function refreshViews() {
+      // Box 2: GCD Badge & Rule
+      document.getElementById("gcdValDisplay").innerText = `GCD = ${gcdVal}`;
+      document.getElementById("gcdRuleText").innerText = `Bunny hops Left or Down in quantum leaps of ${gcdVal} units.`;
+
+      // Box 2: Division Steps
+      const eucContainer = document.getElementById("eucStepsList");
+      let html = "";
+      eucSteps.forEach(s => {
+        html += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #1a1e35; padding:2px 0;">
+          <span style="color:#00ffcc;">Step ${s.step}:</span>
+          <span style="color:#ffea00; font-weight:bold;">${s.expr}</span>
+        </div>`;
+      });
+      html += `<div style="color:#00ff7f; font-weight:bold; padding-top:4px; text-align:right;">
+        ➜ GCD(${startX}, ${startY}) = ${gcdVal}
+      </div>`;
+      eucContainer.innerHTML = html;
+
+      // Box 2: Hop Sequence List
+      const seqContainer = document.getElementById("hopSequenceList");
+      seqContainer.innerHTML = "";
+      for (let i = 0; i < path.length - 1; i++) {
+        const p1 = path[i];
+        const p2 = path[i + 1];
+        const row = document.createElement("div");
+        row.id = `hopItem_${i}`;
+        row.className = "hop-item " + (i < currentStepIdx ? "done" : "");
+        row.innerHTML = `
+          <span>Hop ${String(i + 1).padStart(2, '0')}:</span>
+          <span style="font-weight:bold;">(${p1[0]}, ${p1[1]}) ──▶ (${p2[0]}, ${p2[1]})</span>
+        `;
+        seqContainer.appendChild(row);
+      }
+
+      // Metrics
+      const totalHops = path.length - 1;
+      document.getElementById("hopCounterText").innerText = `${currentStepIdx} / ${totalHops}`;
+      document.getElementById("metricHops").innerText = `Total Hops: ${totalHops}`;
+      document.getElementById("metricDist").innerText = `Manhattan: ${startX + startY}`;
+
+      updateHighlight();
+      drawGrid();
+    }
+
+    function updateHighlight() {
+      for (let i = 0; i < path.length - 1; i++) {
+        const item = document.getElementById(`hopItem_${i}`);
+        if (!item) continue;
+        if (i < currentStepIdx) {
+          item.className = "hop-item done";
+        } else if (i === currentStepIdx) {
+          item.className = "hop-item active";
+          item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } else {
+          item.className = "hop-item";
+        }
+      }
+      document.getElementById("hopCounterText").innerText = `${currentStepIdx} / ${path.length - 1}`;
+    }
+
+    // =========================================================================
+    // BOX 1: RETRO GRID CANVAS & SMOOTH HOP RENDERING
+    // =========================================================================
+    const gridCanvas = document.getElementById("gridCanvas");
+    const gridCtx = gridCanvas.getContext("2d");
+
+    function resizeGridCanvas() {
+      const container = gridCanvas.parentElement;
+      gridCanvas.width = container.clientWidth;
+      gridCanvas.height = Math.max(460, container.clientHeight);
+      drawGrid();
+    }
+    window.addEventListener("resize", resizeGridCanvas);
+
+    function drawGrid() {
+      const cw = gridCanvas.width;
+      const ch = gridCanvas.height;
+      gridCtx.clearRect(0, 0, cw, ch);
+
+      const marginLeft = 65;
+      const marginBottom = 50;
+      const marginTop = 40;
+      const marginRight = 50;
+
+      const limitX = Math.max(20, startX + 2);
+      const limitY = Math.max(20, startY + 2);
+
+      const usableW = Math.max(100, cw - marginLeft - marginRight);
+      const usableH = Math.max(100, ch - marginTop - marginBottom);
+      const scaleX = usableW / limitX;
+      const scaleY = usableH / limitY;
+
+      function gridToCanvas(gx, gy) {
+        return {
+          cx: marginLeft + gx * scaleX,
+          cy: (ch - marginBottom) - gy * scaleY
+        };
+      }
+
+      // Grid Lines
+      gridCtx.lineWidth = 1;
+      gridCtx.font = "bold 9px 'Courier New', Courier, monospace";
+      gridCtx.textAlign = "center";
+      gridCtx.textBaseline = "middle";
+
+      for (let gx = 0; gx <= limitX; gx += 2) {
+        const { cx, cy: cy0 } = gridToCanvas(gx, 0);
+        const { cy: cy1 } = gridToCanvas(gx, limitY);
+
+        gridCtx.strokeStyle = "#191d38";
+        gridCtx.beginPath();
+        gridCtx.moveTo(cx, cy0);
+        gridCtx.lineTo(cx, cy1);
+        gridCtx.stroke();
+
+        // Coordinate Label Pill
+        gridCtx.fillStyle = "#16182c";
+        gridCtx.fillRect(cx - 10, ch - marginBottom + 8, 20, 16);
+        gridCtx.strokeStyle = "#3b426b";
+        gridCtx.strokeRect(cx - 10, ch - marginBottom + 8, 20, 16);
+
+        gridCtx.fillStyle = "#ffea00";
+        gridCtx.fillText(gx, cx, ch - marginBottom + 16);
+      }
+
+      for (let gy = 0; gy <= limitY; gy += 2) {
+        const { cx: cx0, cy } = gridToCanvas(0, gy);
+        const { cx: cx1 } = gridToCanvas(limitX, gy);
+
+        gridCtx.strokeStyle = "#191d38";
+        gridCtx.beginPath();
+        gridCtx.moveTo(cx0, cy);
+        gridCtx.lineTo(cx1, cy);
+        gridCtx.stroke();
+
+        // Coordinate Label Pill
+        gridCtx.fillStyle = "#16182c";
+        gridCtx.fillRect(marginLeft - 30, cy - 8, 22, 16);
+        gridCtx.strokeStyle = "#3b426b";
+        gridCtx.strokeRect(marginLeft - 30, cy - 8, 22, 16);
+
+        gridCtx.fillStyle = "#ffea00";
+        gridCtx.fillText(gy, marginLeft - 19, cy);
+      }
+
+      // Neon Coordinate Axes
+      const { cx: ox, cy: oy } = gridToCanvas(0, 0);
+      const { cx: maxCx } = gridToCanvas(limitX, 0);
+      const { cy: maxCy } = gridToCanvas(0, limitY);
+
+      gridCtx.strokeStyle = "#00ffcc";
+      gridCtx.lineWidth = 2;
+      gridCtx.beginPath();
+      gridCtx.moveTo(ox, oy);
+      gridCtx.lineTo(maxCx + 15, oy);
+      gridCtx.moveTo(ox, oy);
+      gridCtx.lineTo(ox, maxCy - 15);
+      gridCtx.stroke();
+
+      gridCtx.fillStyle = "#00ffcc";
+      gridCtx.fillText("X", maxCx + 24, oy);
+      gridCtx.fillText("Y", ox, maxCy - 24);
+
+      // Origin Carrots Cache Target at (0, 0)
+      gridCtx.fillStyle = "#1d261e";
+      gridCtx.strokeStyle = "#00ff7f";
+      gridCtx.lineWidth = 1;
+      gridCtx.setLineDash([3, 2]);
+      gridCtx.strokeRect(ox - 24, oy - 24, 48, 48);
+      gridCtx.setLineDash([]);
+      drawPixelSprite(gridCtx, CARROT_SPRITE, ox, oy, 2.5);
+
+      gridCtx.fillStyle = "#00ff7f";
+      gridCtx.fillText("CARROTS (0,0)", ox + 52, oy + 12);
+
+      // Start Marker
+      const { cx: sx, cy: sy } = gridToCanvas(startX, startY);
+      gridCtx.fillStyle = "#261a35";
+      gridCtx.strokeStyle = "#ff3399";
+      gridCtx.strokeRect(sx - 30, sy - 36, 60, 20);
+      gridCtx.fillStyle = "#ff3399";
+      gridCtx.fillText(`START (${startX},${startY})`, sx, sy - 26);
+
+      // Traversed Hop Path
+      for (let i = 1; i <= currentStepIdx; i++) {
+        const p1 = gridToCanvas(path[i - 1][0], path[i - 1][1]);
+        const p2 = gridToCanvas(path[i][0], path[i][1]);
+
+        gridCtx.strokeStyle = "#501a35";
+        gridCtx.lineWidth = 4;
+        gridCtx.beginPath();
+        gridCtx.moveTo(p1.cx, p1.cy);
+        gridCtx.lineTo(p2.cx, p2.cy);
+        gridCtx.stroke();
+
+        gridCtx.strokeStyle = "#ff3399";
+        gridCtx.lineWidth = 2;
+        gridCtx.setLineDash([4, 3]);
+        gridCtx.beginPath();
+        gridCtx.moveTo(p1.cx, p1.cy);
+        gridCtx.lineTo(p2.cx, p2.cy);
+        gridCtx.stroke();
+        gridCtx.setLineDash([]);
+
+        gridCtx.fillStyle = "#ffea00";
+        gridCtx.beginPath();
+        gridCtx.arc(p2.cx, p2.cy, 3, 0, Math.PI * 2);
+        gridCtx.fill();
+      }
+
+      // Dust Puff Particles
+      dustPuffs = dustPuffs.filter(d => {
+        d.x += d.vx;
+        d.y += d.vy;
+        d.life--;
+        if (d.life > 0) {
+          gridCtx.fillStyle = d.color;
+          gridCtx.beginPath();
+          gridCtx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+          gridCtx.fill();
+          return true;
+        }
+        return false;
+      });
+
+      // Current Bunny Position with Parabolic Jump Arc
+      const { cx: curCx, cy: rawCy } = gridToCanvas(currentPos.x, currentPos.y);
+      const curCy = rawCy - jumpHeight;
+
+      const sprite = jumpHeight > 2.0 ? BUNNY_SPRITE_HOP : BUNNY_SPRITE_IDLE;
+      drawPixelSprite(gridCtx, sprite, curCx, curCy, 2.5);
+
+      // Coordinate Pill below Bunny
+      gridCtx.fillStyle = "#121324";
+      gridCtx.fillRect(curCx - 24, curCy + 20, 48, 14);
+      gridCtx.strokeStyle = "#00ffcc";
+      gridCtx.strokeRect(curCx - 24, curCy + 20, 48, 14);
+
+      gridCtx.fillStyle = "#00ffcc";
+      gridCtx.fillText(`(${Math.round(currentPos.x)},${Math.round(currentPos.y)})`, curCx, curCy + 27);
+    }
+
+    function spawnDust(cx, cy) {
+      for (let i = 0; i < 6; i++) {
+        dustPuffs.push({
+          x: cx + (Math.random() - 0.5) * 12,
+          y: cy + 12 + (Math.random() - 0.5) * 4,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -Math.random() * 0.8,
+          life: 8 + Math.floor(Math.random() * 6),
+          size: Math.random() > 0.5 ? 3 : 2,
+          color: Math.random() > 0.5 ? "#5c69a6" : "#ffea00"
+        });
+      }
+    }
+
+    // =========================================================================
+    // NAVIGATION CONTROLS & PARABOLIC HOP ANIMATION
+    // =========================================================================
+    function parseInputs() {
+      const x = parseInt(document.getElementById("inputX").value);
+      const y = parseInt(document.getElementById("inputY").value);
+      if (isNaN(x) || isNaN(y) || x <= 0 || y <= 0) {
+        alert("Please enter positive integers for X and Y coordinates.");
+        return null;
+      }
+      return { x, y };
+    }
+
+    function applyPreset(x, y) {
+      document.getElementById("inputX").value = x;
+      document.getElementById("inputY").value = y;
+      resetSimulation();
+    }
+
+    function startNavigation() {
+      if (isAnimating) return;
+      const coords = parseInputs();
+      if (!coords) return;
+
+      if (coords.x !== startX || coords.y !== startY || currentStepIdx >= path.length - 1) {
+        startX = coords.x;
+        startY = coords.y;
+        calculateEuclidean(startX, startY);
+        refreshViews();
+      }
+
+      isAnimating = true;
+      document.getElementById("btnRun").disabled = true;
+      document.getElementById("btnRun").style.opacity = "0.5";
+      document.getElementById("arenaStatus").innerText = "STATUS: BUNNY HOPPING...";
+      document.getElementById("arenaStatus").style.color = "#ffea00";
+      document.getElementById("arenaStatus").style.borderColor = "#ffea00";
+      document.getElementById("arenaStatus").style.background = "#29240c";
+
+      animSpeedMs = parseInt(document.getElementById("speedSelect").value);
+      prepareNextHop();
+    }
+
+    function prepareNextHop() {
+      if (!isAnimating) return;
+
+      if (currentStepIdx < path.length - 1) {
+        hopFrom = { x: path[currentStepIdx][0], y: path[currentStepIdx][1] };
+        hopTo = { x: path[currentStepIdx + 1][0], y: path[currentStepIdx + 1][1] };
+        hopSubstep = 0;
+        play8BitHopSound();
+        animateSubstep();
+      } else {
+        // Reached carrots at (0, 0)!
+        isAnimating = false;
+        document.getElementById("btnRun").disabled = false;
+        document.getElementById("btnRun").style.opacity = "1";
+        document.getElementById("arenaStatus").innerText = "STATUS: CARROTS REACHED! (0,0) ★";
+        document.getElementById("arenaStatus").style.color = "#00ff7f";
+        document.getElementById("arenaStatus").style.borderColor = "#00ff7f";
+        document.getElementById("arenaStatus").style.background = "#0c2115";
+        jumpHeight = 0;
+        currentPos = { x: path[path.length - 1][0], y: path[path.length - 1][1] };
+        drawGrid();
+        play8BitVictorySound();
+      }
+    }
+
+    function animateSubstep() {
+      if (!isAnimating) return;
+      hopSubstep++;
+      const t = hopSubstep / totalSubsteps;
+
+      currentPos.x = (1 - t) * hopFrom.x + t * hopTo.x;
+      currentPos.y = (1 - t) * hopFrom.y + t * hopTo.y;
+
+      const maxBounce = 26;
+      jumpHeight = 4 * maxBounce * t * (1 - t);
+
+      drawGrid();
+
+      const substepDelay = Math.max(16, animSpeedMs / totalSubsteps);
+
+      if (hopSubstep < totalSubsteps) {
+        animTimer = setTimeout(animateSubstep, substepDelay);
+      } else {
+        // Landing
+        currentStepIdx++;
+        currentPos = { x: hopTo.x, y: hopTo.y };
+        jumpHeight = 0;
+        updateHighlight();
+        play8BitLandSound();
+
+        const marginLeft = 65, marginBottom = 50;
+        const limitX = Math.max(20, startX + 2);
+        const limitY = Math.max(20, startY + 2);
+        const usableW = Math.max(100, gridCanvas.width - marginLeft - 50);
+        const usableH = Math.max(100, gridCanvas.height - 40 - marginBottom);
+        const lcx = marginLeft + hopTo.x * (usableW / limitX);
+        const lcy = (gridCanvas.height - marginBottom) - hopTo.y * (usableH / limitY);
+        spawnDust(lcx, lcy);
+        drawGrid();
+
+        const pauseDelay = Math.max(40, animSpeedMs / 3);
+        animTimer = setTimeout(prepareNextHop, pauseDelay);
+      }
+    }
+
+    function stepForward() {
+      if (isAnimating) return;
+      if (currentStepIdx < path.length - 1) {
+        currentStepIdx++;
+        currentPos = { x: path[currentStepIdx][0], y: path[currentStepIdx][1] };
+        jumpHeight = 0;
+        play8BitHopSound();
+        play8BitLandSound();
+        updateHighlight();
+        drawGrid();
+        if (currentStepIdx === path.length - 1) {
+          document.getElementById("arenaStatus").innerText = "STATUS: CARROTS REACHED! (0,0) ★";
+          document.getElementById("arenaStatus").style.color = "#00ff7f";
+          document.getElementById("arenaStatus").style.borderColor = "#00ff7f";
+          document.getElementById("arenaStatus").style.background = "#0c2115";
+          play8BitVictorySound();
+        }
+      }
+    }
+
+    function resetSimulation() {
+      clearTimeout(animTimer);
+      isAnimating = false;
+      document.getElementById("btnRun").disabled = false;
+      document.getElementById("btnRun").style.opacity = "1";
+
+      const coords = parseInputs();
+      if (coords) {
+        startX = coords.x;
+        startY = coords.y;
+        calculateEuclidean(startX, startY);
+      }
+
+      currentStepIdx = 0;
+      currentPos = { x: startX, y: startY };
+      jumpHeight = 0;
+      document.getElementById("arenaStatus").innerText = "STATUS: READY TO HOP";
+      document.getElementById("arenaStatus").style.color = "#00ff7f";
+      document.getElementById("arenaStatus").style.borderColor = "#00ff7f";
+      document.getElementById("arenaStatus").style.background = "#0c2115";
+      refreshViews();
+    }
+
+    // =========================================================================
+    // USER REQUESTED: END SCREEN WITH FIREWORKS PARTICLE EFFECTS
+    // =========================================================================
+    const fireworksCanvas = document.getElementById("fireworksCanvas");
+    const fwCtx = fireworksCanvas.getContext("2d");
+    let fwActive = false;
+    let fwParticles = [];
+    let fwRockets = [];
+    let fwFrame = 0;
+
+    function resizeFireworksCanvas() {
+      fireworksCanvas.width = window.innerWidth;
+      fireworksCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeFireworksCanvas);
+
+    const FW_COLORS = ["#00ffcc", "#ff0066", "#ffea00", "#00ff7f", "#ff9100", "#b388ff", "#ffffff", "#00ffff"];
+
+    class FWRocket {
+      constructor(x, targetY, color) {
+        this.x = x;
+        this.y = fireworksCanvas.height;
+        this.targetY = targetY;
+        this.color = color;
+        this.vy = -(10 + Math.random() * 5);
+        this.vx = (Math.random() - 0.5) * 2;
+        this.exploded = false;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.09;
+        if (this.y <= this.targetY || this.vy >= -1) {
+          this.exploded = true;
+        }
+        return !this.exploded;
+      }
+    }
+
+    class FWParticle {
+      constructor(x, y, color, vx, vy, life, size = 3) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+        this.maxLife = life;
+        this.size = size;
+      }
+      update() {
+        this.vx *= 0.96;
+        this.vy = this.vy * 0.96 + 0.16;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        return this.life > 0;
+      }
+    }
+
+    function detonateFirework(x, y, color) {
+      playFireworkBoomSound();
+      const count = 70 + Math.floor(Math.random() * 30);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 8;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        const life = 30 + Math.floor(Math.random() * 30);
+        fwParticles.push(new FWParticle(x, y, color, vx, vy, life, Math.random() > 0.4 ? 3 : 2));
+      }
+    }
+
+    function launchFWRocket(startX, targetY) {
+      const cw = fireworksCanvas.width;
+      const ch = fireworksCanvas.height;
+      const x = startX !== undefined ? startX : 150 + Math.random() * (cw - 300);
+      const ty = targetY !== undefined ? targetY : 100 + Math.random() * (ch * 0.5);
+      const color = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+      fwRockets.push(new FWRocket(x, ty, color));
+    }
+
+    function loopFireworks() {
+      if (!fwActive) return;
+      fwFrame++;
+      fwCtx.fillStyle = "rgba(5, 5, 14, 0.25)";
+      fwCtx.fillRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+
+      if (fwFrame % 14 === 0 && fwRockets.length < 6) {
+        launchFWRocket();
+      }
+
+      fwRockets = fwRockets.filter(r => {
+        const alive = r.update();
+        if (alive) {
+          fwCtx.fillStyle = r.color;
+          fwCtx.beginPath();
+          fwCtx.arc(r.x, r.y, 3, 0, Math.PI * 2);
+          fwCtx.fill();
+
+          fwCtx.strokeStyle = r.color;
+          fwCtx.lineWidth = 2;
+          fwCtx.beginPath();
+          fwCtx.moveTo(r.x, r.y);
+          fwCtx.lineTo(r.x - r.vx * 3, r.y + 10);
+          fwCtx.stroke();
+          return true;
+        } else {
+          detonateFirework(r.x, r.y, r.color);
+          return false;
+        }
+      });
+
+      fwParticles = fwParticles.filter(p => {
+        const alive = p.update();
+        if (alive) {
+          fwCtx.fillStyle = p.color;
+          fwCtx.beginPath();
+          fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          fwCtx.fill();
+          return true;
+        }
+        return false;
+      });
+
+      requestAnimationFrame(loopFireworks);
+    }
+
+    function showEndScreen() {
+      clearTimeout(animTimer);
+      isAnimating = false;
+      document.getElementById("btnRun").disabled = false;
+      document.getElementById("btnRun").style.opacity = "1";
+
+      document.getElementById("splashStart").innerText = `(${startX}, ${startY})`;
+      document.getElementById("splashGcd").innerText = `GCD = ${gcdVal}`;
+      document.getElementById("splashHops").innerText = `${path.length - 1} HOPS`;
+
+      document.getElementById("endScreenOverlay").style.display = "flex";
+      resizeFireworksCanvas();
+      fwActive = true;
+      fwParticles = [];
+      fwRockets = [];
+      for (let i = 0; i < 4; i++) launchFWRocket();
+      play8BitVictorySound();
+      requestAnimationFrame(loopFireworks);
+    }
+
+    function hideEndScreen() {
+      fwActive = false;
+      document.getElementById("endScreenOverlay").style.display = "none";
+    }
+
+    function launchMoreFireworks() {
+      for (let i = 0; i < 4; i++) {
+        launchFWRocket();
+      }
+    }
+
+    fireworksCanvas.addEventListener("click", (e) => {
+      const color = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+      detonateFirework(e.clientX, e.clientY, color);
+    });
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      calculateEuclidean(12, 18);
+      resizeGridCanvas();
+      refreshViews();
+    });
+  </script>
+</body>
+</html>
